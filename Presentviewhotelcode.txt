@@ -1,0 +1,233 @@
+repository.cs--->
+--------------------------------------
+ 
+public List<Hotel> GetHotels()
+        {
+            {
+                List<Hotel> obj = null;
+                try
+                {
+                    obj = (from a in Context.Hotel select a).ToList();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    obj = null;
+                }
+                return obj;
+            }
+
+        }
+
+==============================================================================
+
+
+
+controller.cs
+-------------------------------------
+
+ [HttpGet]
+        public JsonResult GetHotels()
+        {
+            List<Hotel> hotels;
+            try
+            {
+
+                hotels = adminBL.GetHotels();
+            }
+            catch (Exception)
+            {
+                hotels = null;
+            }
+            return Json(hotels);
+
+        }
+
+
+
+
+============================================================================================
+
+
+Angular
+
+ViewHotelcss
+
+.content {
+  min-height: 90vh;
+  width: 100%;
+  position: relative;
+  text-align: center;
+}
+
+#packages {
+  width: 90%;
+  min-height: 400px;
+  background-color: white;
+  margin: 50px auto 20px auto;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.pkgrow {
+  width: 100%;
+  min-height: 49%;
+  background-color: rgba(255,255,0,0.52);
+  padding: 10px;
+  margin-bottom: 1%;
+  border-radius: 10px;
+  margin-left: 0px;
+}
+
+#nohotel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Quicksand', sans-serif;
+  background-color: rgba(255,255,0,0.52);
+  align-items: center;
+  justify-content: center;
+}
+
+.pkgdelcol h5 {
+  text-align: left;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: bolder;
+  color: red;
+  background-color: white;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.pkgdelcol p {
+  text-align: left;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: bold;
+}
+
+.pkgdelcol {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+  .pkgdelcol p span {
+    color: red;
+    text-decoration: underline;
+  }
+
+#pkgheading {
+  text-align: left;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: bold;
+}
+
+
+.boldtext {
+  font-weight: bolder;
+}
+
+#bookingbtn {
+  padding: 5px;
+  border-radius: 3px;
+}
+
+
+======================================================================================
+
+
+ViewHotelhtml
+----------------------
+
+
+<div class="content">
+  <div id="packages">
+    <h1 id="pkgheading">My Hotels</h1>
+    <div style="width:100%;height:330px;overflow-y:scroll;">
+      <div class="row pkgrow" *ngFor="let hotel of hotels">
+        <div class="col-md-5 col-12 pkgdelcol">
+          <p><span>Hotel Name:</span>&nbsp;&nbsp;&nbsp;{{hotel.hotelName}}</p>
+          <p><span>Hotel Rating:</span>&nbsp;&nbsp;&nbsp;{{hotel.hotelRating}}-star</p>
+          <p><span>Single Room Price:</span>&nbsp;&nbsp;&nbsp;&#8377;{{hotel.singleRoomPrice}}</p>
+        </div>
+        <div class="col-md-5 col-12 pkgdelcol">
+          <p><span>Double Room Price:</span>&nbsp;&nbsp;&nbsp;&#8377;{{hotel.doubleRoomPrice}}</p>
+          <p><span>Deluxe Room Price:</span>&nbsp;&nbsp;&nbsp;&#8377;{{hotel.deluxeeRoomPrice}}</p>
+          <p><span>Suite Room Price:</span>&nbsp;&nbsp;&nbsp;&#8377;{{hotel.suiteRoomPrice}}</p>
+        </div>
+        <div class="col-md-2 col-12 pkgdelcol" style="justify-content:space-around">
+          <img src="../assets/hotels.png" alt="image" class="img-thumbnail pkgimg" style="height:140px;width:100%;min-height:140px;" />
+        </div>
+      </div>
+      <div id="nohotel" [hidden]="hotels.length">
+        <h1>No hotels available...</h1>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+=======================================================================================================================================================
+
+
+
+
+
+ViewHotelTs
+----------------------------------------------
+
+
+
+@Component({
+  selector: 'app-view-hotels',
+  templateUrl: './view-hotels.component.html',
+  styleUrls: ['./view-hotels.component.css']
+})
+export class ViewHotelsComponent implements OnInit {
+  userRole: string;
+    errorMsg: any;
+  hotels: any[];
+  constructor(private packageService: PackageService, private router: Router, private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.userRole = sessionStorage.getItem('userRole');
+    if (this.userRole != "Employee") {
+      this.router.navigate(['/login/2']);
+    }
+    this.getHotels();
+  }
+  getHotels() {
+    this.packageService.getHotels().subscribe(
+      responseHotelStatus => {
+        this.hotels = responseHotelStatus;
+      },
+      responseHotelError => {
+        this.errorMsg = responseHotelError;
+      },
+      () => console.log("ViewHotels method executed successfully")
+    );
+  }
+
+}
+
+
+============================================================================================================================================
+
+
+
+
+services
+-----------------------------------------
+
+
+
+ getHotels(): Observable<IHotel[]> {
+    let temp = this.http.get<IHotel[]>('https://localhost:44393/api/TravelAway/GetHotels').pipe(catchError(this.errorHandler))
+    return temp;
+  }
+
+=================================================================================================================================================
+
