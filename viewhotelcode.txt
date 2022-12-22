@@ -1,0 +1,47 @@
+repository.cs--->
+--------------------------------------
+ 
+public List<Hotel> GetHotels()
+        {
+            {
+                List<Hotel> obj = null;
+                try
+                {
+                    obj = (from a in Context.Hotel select a).ToList();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    obj = null;
+                }
+                return obj;
+            }
+
+        }
+
+==============================================================================
+
+
+
+controller.cs
+-------------------------------------
+
+ [HttpGet]
+        public JsonResult GetHotels()
+        {
+            List<Hotel> hotels;
+            try
+            {
+
+                hotels = adminBL.GetHotels();
+            }
+            catch (Exception)
+            {
+                hotels = null;
+            }
+            return Json(hotels);
+
+        }
+
+
+
