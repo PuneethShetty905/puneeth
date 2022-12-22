@@ -1,0 +1,180 @@
+
+program.cs
+
+        public static void GetVehicles()
+        {
+            List<Vehicle> list = new List<Vehicle>();
+            TravelAwayRepository repository = new TravelAwayRepository();
+            list = repository.GetVehicles();
+            if (list != null)
+            {
+                Console.WriteLine("-------------------------------------");
+                Console.WriteLine("Vehicles Details are:");
+                Console.WriteLine("---------------------------------------");
+              
+                Console.WriteLine();
+                foreach (var item in list)
+                {
+                    Console.WriteLine(item.VehicleName + "\t\t\t" + item.VehicleType + "\t\t\t" + item.RatePerHour + "\t\t\t" + item.RatePerKm);
+
+
+                }
+                Console.WriteLine("---------------------------------------------------------------------------------------");
+
+            }
+            else
+            {
+                Console.WriteLine("No item to display");
+            }
+
+        }
+
+    }
+
+
+------------------------------------------
+REPO.CS
+
+
+
+
+  public List<Vehicle> GetVehicles() {
+            List<Vehicle> Vehicle = new List<Vehicle>();
+
+            try
+            {
+                Vehicle = context.Vehicle.FromSqlRaw("SELECT * FROM dbo.UFN_VIEWVEHICLE()").ToList();
+            }
+	        catch (Exception ex)
+	        {
+                Console.WriteLine(ex.Message);
+                Vehicle=null;
+	        }
+            return Vehicle;
+        }
+    }
+
+
+---------------------------------
+
+
+
+CONTROLLER
+
+
+
+
+ [HttpGet]
+        public JsonResult GetVehicles()
+        {
+            List<Vehicle> list = new List<Vehicle>();
+            try
+            {
+                list = repository.GetVehicles();
+            }
+            catch (Exception)
+            {
+
+                list = null;
+            }
+            return Json(list);
+        }
+
+
+--------------------------
+VIEW-COMPONENT.TS
+
+
+
+
+
+import { Component, OnInit } from '@angular/core';
+import { IVehicle } from '../../travelAway-interfaces/Vehicle';
+import { UserserviceService } from '../../user-service/userservice.service';
+
+@Component({
+  selector: 'app-view-vehicle',
+  templateUrl: './view-vehicle.component.html',
+  styleUrls: ['./view-vehicle.component.css']
+})
+export class ViewVehicleComponent implements OnInit {
+
+  vehicles: IVehicle[];
+  showmsg: boolean;
+  errmsg: string;
+  constructor(private _userservice: UserserviceService) { }
+
+  ngOnInit(): void {
+
+    this.GetAllVehicles();
+  }
+
+  GetAllVehicles() {
+    this._userservice.getVehicle().subscribe(
+      Data => {
+        this.vehicles = Data;
+        this.showmsg = false;
+      },
+      dataError => {
+        this.vehicles = null;
+        this.errmsg = dataError;
+        console.log(this.errmsg);
+      },
+      () => console.log("GetAllVehicles method executed successfully")
+    );
+  }
+
+}
+
+
+
+
+
+
+
+---------------------------------------------------------
+
+
+
+
+
+
+VIEW-COMPONENT.HTML
+
+
+
+
+<div class="myContent">
+  <div style="text-align:center;">
+    <h1>View Vehicles</h1>
+    <br />
+    <br />
+    
+      <div class="table-responsive">
+
+        <table class="table" style="border:5px solid rgba(220,230,242,1);">
+          <tr style="background-color:rgba(220,230,242,1); font-size:12pt">
+            <th style="text-align:center;">Vehicle Name</th>
+            <th style="text-align:center;">Vehicle Type</th>
+            <th style="text-align:center;">Rate per Hour</th>
+            <th style="text-align:center;">Rate per Km</th>
+
+          </tr>
+          <tr *ngFor="let v of vehicles" style="background-color:white;text-align:center">
+            <td> {{v.vehicleName }} </td>
+            <td> {{v.vehicleType}} </td>
+            <td> {{v.ratePerHour}} </td>
+            <td> {{v.ratePerKm}} </td>
+          </tr>
+        </table>
+
+      </div>
+    
+    <div *ngIf="showmsg">
+      No Vehicles Available
+    </div>
+  </div>
+</div>
+
+
+
